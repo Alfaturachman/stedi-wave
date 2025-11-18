@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Analisis Suara</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/css/select2.min.css"
+            rel="stylesheet"
+        />
+        <!-- Select2 Bootstrap Theme -->
+        <link
+            href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-5-theme/1.3.0/select2-bootstrap-5-theme.min.css"
+            rel="stylesheet"
+        />
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script src="https://unpkg.com/wavesurfer.js"></script>
+        <style>
+            :root {
+                --primary-gradient: linear-gradient(
+                    135deg,
+                    #667eea 0%,
+                    #764ba2 100%
+                );
+                --secondary-gradient: linear-gradient(
+                    135deg,
+                    #f093fb 0%,
+                    #f5576c 100%
+                );
+                --success-gradient: linear-gradient(
+                    135deg,
+                    #4facfe 0%,
+                    #00f2fe 100%
+                );
+                --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+                --glass-bg: rgba(255, 255, 255, 0.25);
+                --glass-border: rgba(255, 255, 255, 0.18);
+            }
+
+            body {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                min-height: 100vh;
+            }
+
+            /* === Glass Design untuk Select (Bootstrap & Select2) === */
+            #pasienSelect,
+            .select2-container--bootstrap-5 .select2-selection {
+                display: flex !important;
+                align-items: center !important;
+                min-height: 50px;
+                padding: 0 16px !important;
+            }
+
+            /* Saat fokus */
+            .select2-container--bootstrap-5 .select2-selection:focus,
+            .select2-container--bootstrap-5.select2-container--open
+                .select2-selection {
+                border-color: #667eea !important;
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+                transform: translateY(-2px);
+            }
+
+            /* Placeholder style */
+            .select2-container--bootstrap-5 .select2-selection__placeholder {
+                color: #888 !important;
+                font-style: italic;
+            }
+
+            /* Text selected */
+            .select2-container--bootstrap-5 .select2-selection__rendered {
+                line-height: normal !important;
+                padding-left: 0 !important;
+                padding-right: 0 !important;
+                display: flex;
+                align-items: center;
+                font-weight: 600;
+                color: #333 !important;
+            }
+
+            /* Dropdown result list */
+            .select2-container--bootstrap-5 .select2-results__option {
+                padding: 10px 15px;
+                border-radius: 10px;
+                transition: all 0.2s ease;
+            }
+
+            /* Hover & selected item */
+            .select2-container--bootstrap-5
+                .select2-results__option--highlighted {
+                background: var(--primary-gradient) !important;
+                color: white !important;
+                transform: translateX(4px);
+            }
+
+            .select2-container--bootstrap-5
+                .select2-results__option--highlighted
+                * {
+                color: #fff !important;
+            }
+
+            .select2-container--bootstrap-5 .select2-results__option--selected {
+                background: rgba(102, 126, 234, 0.15) !important;
+                color: white !important;
+                font-weight: 600;
+            }
+
+            /* Dropdown background glassy */
+            .select2-container--bootstrap-5 .select2-dropdown {
+                background: var(--glass-bg);
+                backdrop-filter: blur(12px);
+                border: 1px solid var(--glass-border);
+                border-radius: 15px;
+                box-shadow: var(--card-shadow);
+                overflow: hidden;
+            }
+
+            /* Clear button */
+            .select2-container--bootstrap-5 .select2-selection__clear {
+                color: #764ba2 !important;
+                font-weight: bold;
+                margin-right: 8px;
+                cursor: pointer;
+            }
+
+            .glass-card {
+                background: var(--glass-bg);
+                backdrop-filter: blur(10px);
+                border: 1px solid var(--glass-border);
+                border-radius: 20px;
+                box-shadow: var(--card-shadow);
+            }
+
+            .gradient-text {
+                background: var(--primary-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                font-weight: 700;
+            }
+
+            .upload-area {
+                border: 3px dashed #667eea;
+                border-radius: 20px;
+                background: rgba(102, 126, 234, 0.05);
+                transition: all 0.3s ease;
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .upload-area::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent
+                );
+                transition: left 0.5s;
+            }
+
+            .upload-area:hover::before {
+                left: 100%;
+            }
+
+            .upload-area:hover {
+                border-color: #764ba2;
+                background: rgba(118, 75, 162, 0.1);
+                transform: translateY(-2px);
+            }
+
+            .player-controls {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.9),
+                    rgba(255, 255, 255, 0.6)
+                );
+                backdrop-filter: blur(15px);
+                border-radius: 25px;
+                padding: 20px;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            }
+
+            .control-btn {
+                width: 60px;
+                height: 60px;
+                border-radius: 50%;
+                background: var(--primary-gradient);
+                border: none;
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .control-btn::before {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.2);
+                border-radius: 50%;
+                transition: all 0.3s ease;
+                transform: translate(-50%, -50%);
+            }
+
+            .control-btn:hover::before {
+                width: 100px;
+                height: 100px;
+            }
+
+            .control-btn:hover {
+                transform: scale(1.1);
+                box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+            }
+
+            .time-display {
+                font-family: 'Courier New', monospace;
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: #333;
+                background: rgba(255, 255, 255, 0.8);
+                padding: 8px 12px;
+                border-radius: 10px;
+            }
+
+            .custom-range {
+                background: transparent;
+                height: 8px;
+            }
+
+            .custom-range::-webkit-slider-track {
+                background: linear-gradient(to right, #667eea, #764ba2);
+                height: 8px;
+                border-radius: 4px;
+            }
+
+            .custom-range::-webkit-slider-thumb {
+                appearance: none;
+                height: 20px;
+                width: 20px;
+                background: white;
+                border-radius: 50%;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+                cursor: pointer;
+                transition: transform 0.2s ease;
+            }
+
+            .custom-range::-webkit-slider-thumb:hover {
+                transform: scale(1.3);
+            }
+
+            .action-btn {
+                background: var(--secondary-gradient);
+                border: none;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 15px;
+                font-weight: 600;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .action-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.2),
+                    transparent
+                );
+                transition: left 0.5s;
+            }
+
+            .action-btn:hover::before {
+                left: 100%;
+            }
+
+            .action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 20px rgba(245, 87, 108, 0.4);
+            }
+
+            .success-btn {
+                background: var(--success-gradient);
+            }
+
+            .success-btn:hover {
+                box-shadow: 0 5px 20px rgba(79, 172, 254, 0.4);
+            }
+
+            .form-control {
+                background: rgba(255, 255, 255, 0.9);
+                border: 2px solid transparent;
+                border-radius: 15px;
+                padding: 12px 20px;
+                transition: all 0.3s ease;
+                backdrop-filter: blur(5px);
+            }
+
+            .form-control:focus {
+                background: rgba(255, 255, 255, 0.95);
+                border-color: #667eea;
+                box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+                transform: translateY(-2px);
+            }
+
+            .form-label {
+                font-weight: 600;
+                color: #4a5568;
+                margin-bottom: 8px;
+            }
+
+            #waveform {
+                background: rgba(255, 255, 255, 0.95);
+                border: none;
+                border-radius: 15px;
+                box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.05);
+            }
+
+            .spectrogram-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.95),
+                    rgba(255, 255, 255, 0.8)
+                );
+                border-radius: 20px;
+                padding: 25px;
+                box-shadow: var(--card-shadow);
+                backdrop-filter: blur(10px);
+            }
+
+            .prediction-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(79, 172, 254, 0.1),
+                    rgba(0, 242, 254, 0.1)
+                );
+                border: 2px solid rgba(79, 172, 254, 0.2);
+                border-radius: 20px;
+                padding: 25px;
+            }
+
+            .floating-icon {
+                font-size: 3rem;
+                color: #667eea;
+                margin-bottom: 1rem;
+                animation: float 3s ease-in-out infinite;
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translateY(0px);
+                }
+                50% {
+                    transform: translateY(-10px);
+                }
+            }
+
+            .pulse-animation {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(1.05);
+                }
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .fade-in {
+                animation: fadeIn 0.5s ease-in;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h1 class="gradient-text display-4 mb-3">🎵 Analisis Suara</h1>
+                <p class="lead text-muted">
+                    Silakan unggah file audio untuk menganalisis jenis suara!
+                </p>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-lg-10 col-xl-8">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="glass-card mb-4 p-3">
+                            <label
+                                for="pasienSelect"
+                                class="form-label fw-bold"
+                            >
+                                Pilih Pasien <span class="text-warning">*</span>
+                            </label>
+                            <select
+                                id="pasienSelect"
+                                name="pasienSelect"
+                                class="form-select"
+                                style="width: 100%"
+                                required
+                            >
+                                <option value="">-- Pilih Pasien --</option>
+                            </select>
+                        </div>
+
+                        <!-- File Upload Section -->
+                        <div class="glass-card p-4 mb-4">
+                            <div
+                                class="upload-area p-5 text-center"
+                                onclick="document.getElementById('audioFile').click()"
+                            >
+                                <i class="bi bi-cloud-upload floating-icon"></i>
+                                <h5 class="mb-3">Pilih File Audio</h5>
+                                <p class="text-muted mb-3">
+                                    Drag & drop file audio atau klik untuk
+                                    memilih
+                                </p>
+                                <p class="small text-muted">
+                                    Format: MP3, WAV, OGG (Max: 50MB)
+                                </p>
+                                <input
+                                    type="file"
+                                    class="d-none"
+                                    id="audioFile"
+                                    name="audio_file"
+                                    accept=".mp3,.wav,.ogg"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Audio Player Section -->
+                        <div id="audioPlayerContainer" class="d-none fade-in">
+                            <div class="glass-card p-4 mb-4">
+                                <h5 class="mb-4">
+                                    <i
+                                        class="bi bi-music-note-beamed text-primary me-2"
+                                    ></i>
+                                    Preview Audio
+                                </h5>
+
+                                <div id="waveform" class="mb-4 p-3"></div>
+
+                                <div class="player-controls">
+                                    <div
+                                        class="d-flex align-items-center justify-content-center gap-4"
+                                    >
+                                        <button
+                                            type="button"
+                                            id="playPauseBtn"
+                                            class="control-btn pulse-animation"
+                                        >
+                                            <i
+                                                id="playIcon"
+                                                class="bi bi-play-fill"
+                                            ></i>
+                                        </button>
+
+                                        <div
+                                            class="d-flex align-items-center gap-3 flex-grow-1 justify-content-center"
+                                        >
+                                            <span
+                                                id="currentTime"
+                                                class="time-display"
+                                                >00:00</span
+                                            >
+                                            <div
+                                                class="flex-grow-1 mx-3"
+                                                style="max-width: 300px"
+                                            >
+                                                <input
+                                                    type="range"
+                                                    id="volumeSlider"
+                                                    class="form-range custom-range"
+                                                    min="0"
+                                                    max="1"
+                                                    step="0.1"
+                                                    value="1"
+                                                />
+                                            </div>
+                                            <span
+                                                id="totalTime"
+                                                class="time-display"
+                                                >00:00</span
+                                            >
+                                        </div>
+
+                                        <i
+                                            class="bi bi-volume-up-fill text-primary fs-4"
+                                        ></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Analysis Actions -->
+                            <div class="glass-card p-4 mb-4">
+                                <h5 class="mb-4">
+                                    <i
+                                        class="bi bi-clipboard2-pulse-fill text-secondary me-2"
+                                    ></i>
+                                    Analisis Audio
+                                </h5>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col">
+                                        <button
+                                            type="button"
+                                            class="action-btn success-btn w-100"
+                                            onclick="uploadAudio()"
+                                        >
+                                            <i class="bi bi-gear-fill me-2"></i>
+                                            Proses Audio
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Results Display -->
+                                <div
+                                    id="resultContainer"
+                                    class="glass-card p-4 mb-4 d-none"
+                                >
+                                    <!-- Original Waveform -->
+                                    <div class="mb-4">
+                                        <h6>Waveform:</h6>
+                                        <img
+                                            id="waveformImage"
+                                            class="img-fluid rounded border"
+                                        />
+                                    </div>
+
+                                    <!-- Original Mel Spectrogram -->
+                                    <div class="mb-4">
+                                        <h6>Mel Spectrogram:</h6>
+                                        <img
+                                            id="spectrogramImage"
+                                            class="img-fluid rounded border"
+                                        />
+                                    </div>
+
+                                    <!-- Sliding Window Results Table -->
+                                    <div class="mb-4">
+                                        <h6 class="mb-3">
+                                            Hasil Sliding Windows
+                                        </h6>
+                                        <div class="table-responsive">
+                                            <table
+                                                class="table table-bordered table-striped table-sm"
+                                            >
+                                                <thead class="table-dark">
+                                                    <tr>
+                                                        <th>Window</th>
+                                                        <th>Suara</th>
+                                                        <th>Level dB</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Data akan diisi oleh JavaScript -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sound and Intensity Info -->
+                                    <div class="glass-card p-4 mb-4">
+                                        <div class="row g-4">
+                                            <div class="col-12">
+                                                <label
+                                                    for="jenisSuara"
+                                                    class="form-label"
+                                                >
+                                                    <i
+                                                        class="bi bi-soundwave text-primary me-2"
+                                                    ></i>
+                                                    Jenis Suara
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="jenisSuara"
+                                                    value=""
+                                                    readonly
+                                                    placeholder="-"
+                                                />
+                                            </div>
+
+                                            <div class="col-12">
+                                                <label
+                                                    for="intensitasSuara"
+                                                    class="form-label"
+                                                >
+                                                    <i
+                                                        class="bi bi-speedometer2 text-info me-2"
+                                                    ></i>
+                                                    Intensitas Suara
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    class="form-control"
+                                                    id="intensitasSuara"
+                                                    placeholder="-"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Hidden Inputs to Store Analysis Results -->
+                            <input
+                                type="hidden"
+                                id="preDiagnosisInput"
+                                name="preDiagnosis"
+                                value=""
+                            />
+                            <input
+                                type="hidden"
+                                id="jenisSuaraInput"
+                                name="jenisSuara"
+                                value=""
+                            />
+                            <input
+                                type="hidden"
+                                id="intensitasSuaraInput"
+                                name="intensitasSuara"
+                                value=""
+                            />
+
+                            <!-- Pre-Diagnosis Results -->
+                            <div class="glass-card p-4 mb-4">
+                                <h5 class="mb-4">
+                                    <i
+                                        class="bi bi-clipboard2-data-fill text-success me-2"
+                                    ></i>
+                                    Hasil Pre Diagnosis
+                                </h5>
+
+                                <!-- Rujukan Fasilitas Kesehatan + Analisis Dokter dalam prediction-card -->
+                                <div class="prediction-card">
+                                    <div class="row g-4">
+                                        <div class="col-12">
+                                            <label
+                                                for="rujukanFasilitasKesehatan"
+                                                class="form-label"
+                                            >
+                                                <i
+                                                    class="bi bi-clipboard-pulse text-success me-2"
+                                                ></i>
+                                                Rujukan Fasilitas Kesehatan
+                                            </label>
+                                            <input
+                                                type="text"
+                                                class="form-control"
+                                                id="rujukanFasilitasKesehatan"
+                                                name="rujukanFasilitasKesehatan"
+                                                placeholder="Rujukan fasilitas kesehatan"
+                                            />
+                                        </div>
+
+                                        <!-- Analisis Dokter (konsisten dengan rujukan) -->
+                                        <div class="col-12">
+                                            <label
+                                                for="analisisDokter"
+                                                class="form-label"
+                                            >
+                                                <i
+                                                    class="bi bi-person-badge text-primary me-2"
+                                                ></i>
+                                                Analisis Dokter
+                                                <span class="text-muted small"
+                                                    >(Opsional)</span
+                                                >
+                                            </label>
+                                            <textarea
+                                                class="form-control"
+                                                id="analisisDokter"
+                                                name="analisisDokter"
+                                                rows="4"
+                                                placeholder="Masukkan analisis dan catatan medis dari dokter"
+                                                style="resize: vertical"
+                                            ></textarea>
+                                            <div class="form-text">
+                                                <i
+                                                    class="bi bi-info-circle me-1"
+                                                ></i>
+                                                Dokter dapat menambahkan
+                                                catatan, diagnosis, atau
+                                                rekomendasi tambahan sesuai
+                                                penilaian klinis.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                <button
+                                    type="submit"
+                                    class="action-btn success-btn px-5 py-3"
+                                >
+                                    <i class="bi bi-download me-2"></i>
+                                    Simpan
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    <div class="text-center mt-4">
+                        <button
+                            type="button"
+                            class="action-btn btn-secondary px-5 py-3"
+                            onclick="window.location.href='{% url 'beranda' %}'"
+                        >
+                            <i class="bi bi-arrow-left me-2"></i>
+                            Kembali
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.0/jquery.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <!-- Select2 JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.1.0-rc.0/js/select2.min.js"></script>
+
+    <script>
+        const patients = {{ pasien_json|safe }};
+        console.log(patients);
+
+        function loadPatients() {
+            const pasienSelect = document.getElementById('pasienSelect');
+            pasienSelect.innerHTML =
+                '<option value="">-- Pilih Pasien --</option>';
+
+            patients.forEach((patient) => {
+                const option = document.createElement('option');
+                option.value = patient.id;
+                option.textContent = `${patient.namaLengkap} (${patient.usia})`;
+                option.setAttribute('data-nama', patient.namaLengkap);
+                option.setAttribute('data-usia', patient.usia);
+                option.setAttribute(
+                    'data-pekerjaan',
+                    patient.pekerjaan || patient.spesialisasi || ''
+                );
+                option.setAttribute('data-norm', patient.noRM);
+                pasienSelect.appendChild(option);
+            });
+        }
+
+        $(document).ready(function () {
+            loadPatients();
+
+            // Inisialisasi Select2
+            $('#pasienSelect').select2({
+                theme: 'bootstrap-5',
+                placeholder: '-- Pilih Pasien --',
+                allowClear: true,
+                width: '100%',
+                language: {
+                    noResults: () => 'Tidak ada pasien yang ditemukan',
+                    searching: () => 'Mencari...',
+                },
+                matcher: function (params, data) {
+                    if ($.trim(params.term) === '') return data;
+                    if (typeof data.text === 'undefined') return null;
+
+                    const term = params.term.toLowerCase();
+                    const patient = patients.find((p) => p.id == data.id);
+
+                    if (!patient) return null;
+
+                    const searchStr = `${patient.namaLengkap} ${patient.usia} ${patient.noRM}`.toLowerCase();
+
+                    return searchStr.indexOf(term) > -1 ? data : null;
+                },
+                templateResult: function (data) {
+                    if (data.loading) return data.text;
+                    if (!data.id) return data.text;
+
+                    const patient = patients.find((p) => p.id == data.id);
+                    if (!patient) return data.text;
+
+                    return $(
+                        `<div>
+                            <div style="font-weight:bold;color:#333;">${patient.namaLengkap}</div>
+                            <div style="font-size:0.9em;color:#666;">${patient.usia}</div>
+                        </div>`
+                    );
+                },
+                templateSelection: function (data) {
+                    if (!data.id) return data.text;
+                    return ". . .";
+                },
+            });
+
+            // Event select pasien
+            $('#pasienSelect').on('select2:select', function (e) {
+                const selectedId = e.params.data.id;
+                const patient = patients.find((p) => p.id == selectedId);
+                if (patient) {
+                    $('#selectedName').text(patient.namaLengkap);
+                    $('#selectedAge').text(patient.usia);
+                }
+            });
+        });
+
+        // ====== Audio Player & Analysis Logic ======
+        const fileInput = document.getElementById('audioFile');
+        const audioPlayerContainer = document.getElementById('audioPlayerContainer');
+        const waveformContainer = document.getElementById('waveform');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playIcon = document.getElementById('playIcon');
+        const currentTimeSpan = document.getElementById('currentTime');
+        const totalTimeSpan = document.getElementById('totalTime');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const jenisSuaraInput = document.getElementById('jenisSuara');
+
+        let wavesurfer = null;
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes
+                .toString()
+                .padStart(2, '0')}:${remainingSeconds
+                .toString()
+                .padStart(2, '0')}`;
+        }
+
+        fileInput.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                audioPlayerContainer.classList.remove('d-none');
+
+                if (wavesurfer) {
+                    wavesurfer.destroy();
+                    waveformContainer.innerHTML = '';
+                }
+
+                wavesurfer = WaveSurfer.create({
+                    container: '#waveform',
+                    waveColor: '#667eea',
+                    progressColor: '#764ba2',
+                    height: 80,
+                    responsive: true,
+                    interact: true,
+                    hideScrollbar: true,
+                    normalize: true,
+                    backend: 'WebAudio',
+                    barWidth: 2,
+                    barRadius: 3,
+                    barGap: 1,
+                });
+
+                wavesurfer.load(fileURL);
+
+                wavesurfer.on('ready', function () {
+                    const duration = wavesurfer.getDuration();
+                    totalTimeSpan.textContent = formatTime(duration);
+                    currentTimeSpan.textContent = formatTime(0);
+                    playIcon.classList.add('bi-play-fill');
+                    playPauseBtn.classList.remove('pulse-animation');
+                });
+
+                wavesurfer.on('audioprocess', function () {
+                    currentTimeSpan.textContent = formatTime(
+                        wavesurfer.getCurrentTime()
+                    );
+                });
+
+                wavesurfer.on('seek', function () {
+                    currentTimeSpan.textContent = formatTime(
+                        wavesurfer.getCurrentTime()
+                    );
+                });
+
+                wavesurfer.on('play', function () {
+                    playIcon.classList.replace(
+                        'bi-play-fill',
+                        'bi-pause-fill'
+                    );
+                });
+
+                wavesurfer.on('pause', function () {
+                    playIcon.classList.replace(
+                        'bi-pause-fill',
+                        'bi-play-fill'
+                    );
+                });
+
+                wavesurfer.on('finish', function () {
+                    playIcon.classList.replace(
+                        'bi-pause-fill',
+                        'bi-play-fill'
+                    );
+                    currentTimeSpan.textContent = formatTime(0);
+                });
+
+                playPauseBtn.onclick = function () {
+                    wavesurfer.isPlaying()
+                        ? wavesurfer.pause()
+                        : wavesurfer.play();
+                };
+
+                volumeSlider.addEventListener('input', function () {
+                    wavesurfer.setVolume(parseFloat(this.value));
+                });
+            }
+        });
+
+        window.addEventListener('beforeunload', function () {
+            if (wavesurfer) {
+                wavesurfer.destroy();
+            }
+        });
+
+        // Add drag and drop functionality
+        const uploadArea = document.querySelector('.upload-area');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(
+            (eventName) => {
+                uploadArea.addEventListener(
+                    eventName,
+                    preventDefaults,
+                    false
+                );
+            }
+        );
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach((eventName) => {
+            uploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach((eventName) => {
+            uploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            uploadArea.style.borderColor = '#764ba2';
+            uploadArea.style.background = 'rgba(118, 75, 162, 0.15)';
+        }
+
+        function unhighlight() {
+            uploadArea.style.borderColor = '#667eea';
+            uploadArea.style.background = 'rgba(102, 126, 234, 0.05)';
+        }
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            fileInput.files = files;
+            fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+
+        // ============================================================
+        // MAIN: uploadAudio() Function - FIXED
+        // ============================================================
+        function uploadAudio() {
+            const fileInput = document.getElementById('audioFile');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Silakan pilih file audio terlebih dahulu');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            const pasienSelect = document.getElementById('pasienSelect');
+            const selectedPasien = pasienSelect.value;
+
+            // Validasi tipe file
+            const allowedTypes = [
+                'audio/wav',
+                'audio/mpeg',
+                'audio/mp3',
+                'audio/ogg',
+                'audio/flac',
+            ];
+            if (
+                !allowedTypes.includes(file.type) &&
+                !file.name.match(/\.(wav|mp3|ogg|flac)$/i)
+            ) {
+                alert(
+                    'Format file tidak didukung. Silakan gunakan file WAV, MP3, OGG, atau FLAC.'
+                );
+                return;
+            }
+
+            // Validasi ukuran file (max 50MB)
+            if (file.size > 50 * 1024 * 1024) {
+                alert('File terlalu besar. Maksimal 50MB.');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('audio_file', file);
+            if (selectedPasien) {
+                formData.append('pasienSelect', selectedPasien);
+            }
+
+            // Tampilkan loading state
+            const processBtn = document.querySelector(
+                '[onclick="uploadAudio()"]'
+            );
+            const originalText = processBtn.innerHTML;
+            processBtn.innerHTML =
+                '<i class="bi bi-hourglass me-2"></i>Memproses...';
+            processBtn.disabled = true;
+
+            // Hide previous results
+            const resultContainer = document.getElementById('resultContainer');
+            if (resultContainer) {
+                resultContainer.classList.add('d-none');
+            }
+
+            // Show progress indicator
+            showProgressIndicator();
+
+            // SEND ke backend
+            fetch('/analyze_lung_sound_enhanced/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+                .then(async (response) => {
+                    console.log('Response status:', response.status);
+                    console.log('Response headers:', response.headers);
+
+                    if (!response.ok) {
+                        throw new Error(
+                            `HTTP error! status: ${response.status}`
+                        );
+                    }
+
+                    const contentType = response.headers.get('content-type');
+                    if (
+                        !contentType ||
+                        !contentType.includes('application/json')
+                    ) {
+                        const text = await response.text();
+                        console.error('Non-JSON response:', text);
+                        throw new Error(
+                            `Server mengembalikan respons non-JSON: ${text.substring(
+                                0,
+                                200
+                            )}...`
+                        );
+                    }
+
+                    const data = await response.json();
+                    console.log('Response data received:', data);
+                    return data;
+                })
+                .then((data) => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    if (data.status === 'success') {
+                        console.log('Status success, processing data...');
+
+                        // Update main visualizations
+                        const waveformImg = document.getElementById('waveformImage');
+                        const spectrogramImg = document.getElementById('spectrogramImage');
+
+                        if (waveformImg && spectrogramImg) {
+                            waveformImg.src = data.waveform_url;
+                            spectrogramImg.src = data.spectrogram_url;
+
+                            // CRITICAL: Populate sliding window table
+                            populateSlidingWindowTable(data.sliding_window_results);
+
+                            // Update prediction result
+                            updateEnhancedPredictionResult(data);
+
+                            // Show results
+                            if (resultContainer) {
+                                resultContainer.classList.remove('d-none');
+
+                                // Smooth scroll to results
+                                setTimeout(() => {
+                                    resultContainer.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'start',
+                                    });
+                                }, 100);
+                            }
+
+                            showSuccessMessage('Audio berhasil dianalisis!');
+                        } else {
+                            throw new Error('Element gambar tidak ditemukan');
+                        }
+                    } else {
+                        throw new Error('Data respons tidak lengkap: ' + JSON.stringify(data));
+                    }
+                })
+                .catch((err) => {
+                    console.error('Error details:', err);
+
+                    let errorMessage = 'Terjadi kesalahan saat memproses audio';
+
+                    if (err.message.includes('Failed to fetch')) {
+                        errorMessage =
+                            'Koneksi ke server gagal. Periksa koneksi internet Anda.';
+                    } else if (err.message.includes('HTTP error')) {
+                        errorMessage =
+                            'Server error. Silakan coba lagi nanti.';
+                    } else if (err.message) {
+                        errorMessage = err.message;
+                    }
+
+                    showErrorMessage(errorMessage);
+                })
+                .finally(() => {
+                    // Reset button state
+                    processBtn.innerHTML = originalText;
+                    processBtn.disabled = false;
+
+                    // Hide progress indicator
+                    hideProgressIndicator();
+                });
+        }
+
+        // ============================================================
+        // FIXED: Populate Sliding Window Table
+        // ============================================================
+        function populateSlidingWindowTable(windowsData) {
+            console.log('Populating sliding window table with data:', windowsData);
+
+            // Find table tbody
+            const tableBody = document.querySelector('#resultContainer table tbody');
+
+            if (!tableBody) {
+                console.error('Table tbody tidak ditemukan!');
+                return;
+            }
+
+            // Clear existing rows
+            tableBody.innerHTML = '';
+
+            if (!windowsData || windowsData.length === 0) {
+                console.warn('No window data to display');
+                tableBody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Tidak ada data window</td></tr>';
+                return;
+            }
+
+            // Loop setiap window dan buat row
+            windowsData.forEach((windowData, index) => {
+                console.log(`Window ${index + 1}:`, windowData);
+
+                const row = document.createElement('tr');
+
+                // Window number
+                const windowCell = document.createElement('td');
+                windowCell.textContent = windowData.window_number || (index + 1);
+                row.appendChild(windowCell);
+
+                // Suara (predicted_sound from backend response) - FIXED
+                const suaraCell = document.createElement('td');
+                const soundValue = windowData.predicted_sound || 'Unknown';
+                suaraCell.innerHTML = `<span class="badge bg-primary">${soundValue}</span>`;
+                row.appendChild(suaraCell);
+
+                // Level dB
+                const dbCell = document.createElement('td');
+                const dbValue = windowData.level_db || 0;
+                dbCell.textContent = dbValue.toFixed(2) + ' dB';
+
+                // Add color based on intensity
+                if (dbValue > 60) {
+                    dbCell.style.color = '#dc3545'; // Red for high intensity
+                    dbCell.style.fontWeight = 'bold';
+                } else if (dbValue > 40) {
+                    dbCell.style.color = '#ff6c00'; // Orange for medium
+                } else {
+                    dbCell.style.color = '#28a745'; // Green for low
+                }
+                row.appendChild(dbCell);
+
+                tableBody.appendChild(row);
+            });
+
+            console.log(`Displayed ${windowsData.length} windows`);
+        }
+
+        // ============================================================
+        // FIXED: Enhanced Prediction Result with Hidden Inputs
+        // ============================================================
+        function updateEnhancedPredictionResult(data) {
+            console.log('Updating enhanced prediction result:', data);
+
+            // ===== Update Sound Classification =====
+            if (data.sound_classification) {
+                const soundResult = data.sound_classification;
+
+                const jenisSuaraInput = document.getElementById('jenisSuara');
+                const jenisSuaraHidden = document.getElementById('jenisSuaraInput');
+                const intensitasInput = document.getElementById('intensitasSuara');
+                const intensitasHidden = document.getElementById('intensitasSuaraInput');
+
+                if (jenisSuaraInput) {
+                    console.log("Updating jenisSuara dengan:", soundResult.detected_sound);
+                    jenisSuaraInput.value = soundResult.detected_sound || '-';
+                    if (jenisSuaraHidden) {
+                        jenisSuaraHidden.value = soundResult.detected_sound || '';
+                    }
+                }
+
+                if (intensitasInput) {
+                    // Get average intensity from windows
+                    const windowsData = data.sliding_window_results || [];
+                    let avgIntensity = 0;
+                    if (windowsData.length > 0) {
+                        avgIntensity = windowsData.reduce((sum, w) => sum + (w.level_db || 0), 0) / windowsData.length;
+                    }
+                    console.log("Average intensity:", avgIntensity);
+                    const intensityValue = avgIntensity > 0 ? `${avgIntensity.toFixed(2)} dB` : '-';
+                    intensitasInput.value = intensityValue;
+                    if (intensitasHidden) {
+                        intensitasHidden.value = intensityValue;
+                    }
+                }
+            }
+
+            // ===== Update PRE-DIAGNOSIS =====
+            if (data.pre_diagnosis) {
+                console.log('Updating pre-diagnosis fields:', data.pre_diagnosis);
+
+                const rujukanInput = document.getElementById('rujukanFasilitasKesehatan');
+                if (rujukanInput) {
+                    rujukanInput.value =
+                        data.pre_diagnosis.urgency ||
+                        'Disarankan untuk pemeriksaan lebih lanjut pada dokter spesialis paru';
+                }
+
+                // CREATE DETAILED DIAGNOSIS TEXT FOR FIREBASE
+                const diagnosisText = createDiagnosisTextForFirebase(data.pre_diagnosis, data.disease_detection);
+
+                // Store in hidden input
+                const preDiagnosisHidden = document.getElementById('preDiagnosisInput');
+                if (preDiagnosisHidden) {
+                    preDiagnosisHidden.value = diagnosisText;
+                    console.log('Pre-diagnosis stored in hidden input:', diagnosisText);
+                }
+
+                createDetailedDiagnosisDisplay(data.pre_diagnosis, data.disease_detection);
+            }
+        }
+
+        // ============================================================
+        // NEW: Create Diagnosis Text for Firebase Storage
+        // ============================================================
+        function createDiagnosisTextForFirebase(preDiagnosis, diseaseDetection) {
+            let text = 'Detail Pre-Diagnosis\n';
+
+            // 1. Primary disease and confidence
+            if (preDiagnosis.primary_disease) {
+                text += `Penyakit Utama: ${preDiagnosis.primary_disease} (${preDiagnosis.primary_confidence || '0%'})\n`;
+            }
+
+            // 2. Top 3 diseases from distribution
+            if (diseaseDetection && diseaseDetection.disease_distribution) {
+                const diseases = Object.entries(diseaseDetection.disease_distribution)
+                    .map(([name, data]) => ({
+                        name: name,
+                        count: data.count || 0,
+                        percentage: data.percentage || 0,
+                        sound: data.sound || 'Unknown'
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 3);
+
+                if (diseases.length > 0) {
+                    text += 'Kemungkinan Penyakit (Top 3):\n';
+                    diseases.forEach((disease, index) => {
+                        text += `${index + 1}. ${disease.name}\n`;
+                        text += `   Suara: ${disease.sound}\n`;
+                        text += `   ${disease.count} windows (${disease.percentage}%)\n`;
+                    });
+                }
+            }
+
+            // 3. Detected sound
+            if (preDiagnosis.primary_sound) {
+                text += `Suara Terdeteksi: ${preDiagnosis.primary_sound}\n`;
+            }
+
+            // 4. Severity
+            if (preDiagnosis.severity) {
+                text += `Tingkat Keparahan: ${preDiagnosis.severity}\n`;
+            }
+
+            // 5. Urgency
+            if (preDiagnosis.urgency) {
+                text += `Urgensi: ${preDiagnosis.urgency}\n`;
+            }
+
+            // 6. Recommendations
+            if (preDiagnosis.rekomendasi && Array.isArray(preDiagnosis.rekomendasi) && preDiagnosis.rekomendasi.length > 0) {
+                text += 'Rekomendasi:\n';
+                preDiagnosis.rekomendasi.forEach((rek) => {
+                    text += `- ${rek}\n`;
+                });
+            }
+
+            // 7. Sound indication
+            if (preDiagnosis.primary_sound) {
+                text += `Indikasi suara: ${preDiagnosis.primary_sound}`;
+            }
+
+            return text;
+        }
+
+        // ============================================================
+        // FIXED: Create Detailed Diagnosis Display - Top 3 Penyakit
+        // ============================================================
+        function createDetailedDiagnosisDisplay(preDiagnosis, diseaseDetection) {
+            console.log('Creating diagnosis display:', preDiagnosis, diseaseDetection);
+
+            let detailedContainer = document.getElementById('detailedDiagnosisContainer');
+
+            if (!detailedContainer) {
+                const parentContainer = document.querySelector('.prediction-card');
+
+                if (parentContainer) {
+                    detailedContainer = document.createElement('div');
+                    detailedContainer.id = 'detailedDiagnosisContainer';
+                    detailedContainer.className = 'mt-4 p-3 border rounded bg-light';
+                    parentContainer.appendChild(detailedContainer);
+                }
+            }
+
+            if (detailedContainer && preDiagnosis) {
+                let html = '<h6 class="fw-bold text-primary mb-3"><i class="bi bi-clipboard-data me-2"></i>Detail Pre-Diagnosis</h6>';
+
+                // 1. Display primary disease and confidence
+                if (preDiagnosis.primary_disease) {
+                    console.log('Disease:', preDiagnosis.primary_disease);
+                    html += `<div class="mb-3">
+                        <strong>Penyakit Utama:</strong>
+                        <span class="badge bg-danger">${preDiagnosis.primary_disease}</span>
+                        <span class="ms-2 text-muted">(${preDiagnosis.primary_confidence || '0%'})</span>
+                    </div>`;
+                }
+
+                // 2. Display top 3 diseases dari sliding windows
+                if (diseaseDetection && diseaseDetection.disease_distribution) {
+                    console.log('Disease Distribution:', diseaseDetection.disease_distribution);
+                    const diseases = Object.entries(diseaseDetection.disease_distribution)
+                        .map(([name, data]) => ({
+                            name: name,
+                            count: data.count || 0,
+                            percentage: data.percentage || 0,
+                            sound: data.sound || 'Unknown'
+                        }))
+                        .sort((a, b) => b.count - a.count)
+                        .slice(0, 3);
+
+                    if (diseases.length > 0) {
+                        html += '<div class="mb-3">';
+                        html += '<strong>Kemungkinan Penyakit (Top 3):</strong>';
+                        html += '<div class="mt-2" style="display: flex; flex-direction: column; gap: 8px;">';
+
+                        diseases.forEach((disease, index) => {
+                            const colors = ['danger', 'warning', 'info'];
+                            const color = colors[index] || 'secondary';
+                            const percentage = disease.percentage || 0;
+
+                            html += `
+                            <div style="padding: 8px; background: white; border-left: 4px solid var(--bs-${color}); border-radius: 4px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span class="badge bg-${color}" style="font-size: 0.9rem;">${disease.name}</span>
+                                    <span class="text-muted" style="font-size: 0.85rem;">Suara: <strong>${disease.sound}</strong></span>
+                                </div>
+                                <div style="margin-top: 6px; font-size: 0.9rem;">
+                                    <div style="background: #e9ecef; height: 6px; border-radius: 3px; overflow: hidden;">
+                                        <div style="background: var(--bs-${color}); height: 100%; width: ${percentage}%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <small class="text-muted">${disease.count} windows (${percentage}%)</small>
+                                </div>
+                            </div>
+                            `;
+                        });
+
+                        html += '</div></div>';
+                    }
+                }
+
+                // 3. Display detected sound
+                if (preDiagnosis.primary_sound) {
+                    console.log('Sound:', preDiagnosis.primary_sound);
+                    html += `<div class="mb-3">
+                        <strong>Suara Terdeteksi:</strong>
+                        <span class="badge bg-info">${preDiagnosis.primary_sound}</span>
+                    </div>`;
+                }
+
+                // 4. Display severity
+                if (preDiagnosis.severity) {
+                    console.log('Severity:', preDiagnosis.severity);
+                    const severityColor = preDiagnosis.severity === 'Berat' ? 'danger' :
+                                        preDiagnosis.severity === 'Sedang' ? 'warning' : 'success';
+                    html += `<div class="mb-3">
+                        <strong>Tingkat Keparahan:</strong>
+                        <span class="badge bg-${severityColor}">${preDiagnosis.severity}</span>
+                    </div>`;
+                }
+
+                // 5. Display urgency
+                if (preDiagnosis.urgency) {
+                    console.log('Urgency:', preDiagnosis.urgency);
+                    html += `<div class="mb-3">
+                        <strong>Urgensi:</strong>
+                        <span class="text-danger fw-bold">${preDiagnosis.urgency}</span>
+                    </div>`;
+                }
+
+                // 6. Display recommendations
+                if (preDiagnosis.rekomendasi && Array.isArray(preDiagnosis.rekomendasi) && preDiagnosis.rekomendasi.length > 0) {
+                    console.log('Recommendations:', preDiagnosis.rekomendasi);
+                    html += '<div class="mb-3"><strong>Rekomendasi:</strong><ul class="mt-2 mb-0">';
+                    preDiagnosis.rekomendasi.forEach(function(rek) {
+                        html += '<li>' + rek + '</li>';
+                    });
+                    html += '</ul></div>';
+                }
+
+                // 7. Medical disclaimer
+                html += '<div class="alert alert-warning mt-3 mb-0"><small><i class="bi bi-exclamation-triangle me-1"></i><strong>Disclaimer:</strong> Hasil ini adalah pre-diagnosis berbasis AI dan tidak menggantikan konsultasi medis profesional.</small></div>';
+
+                console.log('Final HTML:', html);
+                detailedContainer.innerHTML = html;
+                detailedContainer.classList.add('fade-in');
+            } else {
+                console.warn('No detailed container or preDiagnosis data');
+            }
+        }
+
+        // ============================================================
+        // Helper Functions: Progress & Toast Notifications
+        // ============================================================
+        function showProgressIndicator() {
+            const indicator = document.getElementById('progressIndicator');
+            if (indicator) {
+                indicator.classList.remove('d-none');
+            }
+        }
+
+        function hideProgressIndicator() {
+            const indicator = document.getElementById('progressIndicator');
+            if (indicator) {
+                indicator.classList.add('d-none');
+            }
+        }
+
+        function showSuccessMessage(message) {
+            showToast(message, 'success');
+        }
+
+        function showErrorMessage(message) {
+            showToast(message, 'error');
+        }
+
+        function showToast(message, type = 'info') {
+            // Create toast element if doesn't exist
+            let toastContainer = document.getElementById('toastContainer');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toastContainer';
+                toastContainer.className = 'position-fixed top-0 end-0 p-3';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            const toastId = 'toast_' + Date.now();
+            const bgClass =
+                type === 'success'
+                    ? 'bg-success'
+                    : type === 'error'
+                    ? 'bg-danger'
+                    : 'bg-info';
+
+            const toastHtml = `
+                <div id="${toastId}" class="toast ${bgClass} text-white" role="alert">
+                    <div class="toast-header ${bgClass} text-white border-0">
+                        <i class="bi bi-${
+                            type === 'success'
+                                ? 'check-circle'
+                                : type === 'error'
+                                ? 'exclamation-triangle'
+                                : 'info-circle'
+                        } me-2"></i>
+                        <strong class="me-auto">${
+                            type === 'success'
+                                ? 'Berhasil'
+                                : type === 'error'
+                                ? 'Error'
+                                : 'Info'
+                        }</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement, {
+                autohide: true,
+                delay: type === 'error' ? 8000 : 4000,
+            });
+
+            toast.show();
+
+            // Remove toast element after it's hidden
+            toastElement.addEventListener('hidden.bs.toast', () => {
+                toastElement.remove();
+            });
+        }
+    </script>
+</html>

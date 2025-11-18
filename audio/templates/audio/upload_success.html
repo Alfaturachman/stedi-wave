@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Upload Berhasil</title>
+        <style>
+            :root {
+                --primary-gradient: linear-gradient(
+                    135deg,
+                    #667eea 0%,
+                    #764ba2 100%
+                );
+                --success-gradient: linear-gradient(
+                    135deg,
+                    #4facfe 0%,
+                    #00f2fe 100%
+                );
+                --danger-gradient: linear-gradient(
+                    135deg,
+                    #ff9a9e 0%,
+                    #fecfef 100%
+                );
+                --glass-bg: rgba(255, 255, 255, 0.25);
+                --glass-border: rgba(255, 255, 255, 0.18);
+                --text-primary: #2d3748;
+                --text-secondary: #718096;
+                --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            }
+
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                min-height: 100vh;
+                overflow: hidden;
+                position: relative;
+            }
+
+            body::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.04)"/><circle cx="75" cy="75" r="1.5" fill="rgba(255,255,255,0.035)"/><circle cx="50" cy="10" r="0.8" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="1.2" fill="rgba(255,255,255,0.03)"/><circle cx="90" cy="30" r="0.9" fill="rgba(255,255,255,0.04)"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grain)"/></svg>');
+                z-index: 0;
+                opacity: 0.3;
+            }
+
+            .success-card {
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border);
+                box-shadow: var(--card-shadow);
+                border-radius: 25px;
+                text-align: center;
+                padding: 3rem 2rem;
+                width: 90%;
+                max-width: 480px;
+                z-index: 2;
+                position: relative;
+                animation: fadeInUp 0.8s ease-out;
+            }
+
+            .success-icon {
+                width: 80px;
+                height: 80px;
+                border-radius: 50%;
+                margin: 0 auto 1.5rem;
+                background: var(--success-gradient);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 3rem;
+                animation: popIn 0.6s ease;
+                box-shadow: 0 10px 25px rgba(0, 242, 254, 0.4);
+            }
+
+            .success-title {
+                font-size: 2rem;
+                font-weight: 700;
+                background: var(--primary-gradient);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 1rem;
+            }
+
+            .success-text {
+                color: var(--text-secondary);
+                font-size: 1.1rem;
+                margin-bottom: 2rem;
+            }
+
+            .back-btn {
+                display: inline-block;
+                background: var(--primary-gradient);
+                color: white;
+                padding: 0.8rem 2rem;
+                border-radius: 12px;
+                text-decoration: none;
+                font-weight: 600;
+                letter-spacing: 0.5px;
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .back-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    90deg,
+                    transparent,
+                    rgba(255, 255, 255, 0.3),
+                    transparent
+                );
+                transition: left 0.6s;
+            }
+
+            .back-btn:hover::before {
+                left: 100%;
+            }
+
+            .back-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+            }
+
+            @keyframes popIn {
+                0% {
+                    transform: scale(0.5);
+                    opacity: 0;
+                }
+                100% {
+                    transform: scale(1);
+                    opacity: 1;
+                }
+            }
+
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="success-card">
+            <div class="success-icon">✔</div>
+            <h1 class="success-title">Simpan Periksa Berhasil!</h1>
+            <p class="success-text">
+                Data periksa pasien telah berhasil disimpan.
+            </p>
+            <a href="/" class="back-btn">Kembali ke Beranda</a>
+        </div>
+    </body>
+</html>

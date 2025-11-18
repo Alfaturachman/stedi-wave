@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="id">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Dashboard Medis</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet"
+        />
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --primary: #667eea;
+                --primary-dark: #5568d3;
+                --secondary: #764ba2;
+                --success: #4facfe;
+                --warning: #fcb69f;
+                --danger: #ff6b9d;
+                --glass-bg: rgba(255, 255, 255, 0.15);
+                --glass-border: rgba(255, 255, 255, 0.25);
+                --shadow-sm: 0 4px 15px rgba(0, 0, 0, 0.08);
+                --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.12);
+                --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.15);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                min-height: 100vh;
+                position: relative;
+                overflow-x: hidden;
+            }
+
+            /* Animated Background Pattern */
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-image: radial-gradient(
+                        circle at 20% 30%,
+                        rgba(255, 255, 255, 0.08) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        circle at 80% 70%,
+                        rgba(255, 255, 255, 0.06) 0%,
+                        transparent 50%
+                    ),
+                    radial-gradient(
+                        circle at 40% 80%,
+                        rgba(255, 255, 255, 0.05) 0%,
+                        transparent 50%
+                    );
+                pointer-events: none;
+                z-index: 0;
+            }
+
+            .floating-shapes {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                pointer-events: none;
+                z-index: 0;
+            }
+
+            .shape {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.05);
+                animation: float 20s ease-in-out infinite;
+            }
+
+            .shape:nth-child(1) {
+                width: 100px;
+                height: 100px;
+                top: 10%;
+                left: 10%;
+                animation-delay: 0s;
+                animation-duration: 18s;
+            }
+
+            .shape:nth-child(2) {
+                width: 150px;
+                height: 150px;
+                top: 60%;
+                right: 10%;
+                animation-delay: 3s;
+                animation-duration: 22s;
+            }
+
+            .shape:nth-child(3) {
+                width: 80px;
+                height: 80px;
+                bottom: 20%;
+                left: 15%;
+                animation-delay: 6s;
+                animation-duration: 20s;
+            }
+
+            .shape:nth-child(4) {
+                width: 120px;
+                height: 120px;
+                top: 30%;
+                right: 20%;
+                animation-delay: 9s;
+                animation-duration: 25s;
+            }
+
+            @keyframes float {
+                0%,
+                100% {
+                    transform: translate(0, 0) rotate(0deg);
+                }
+                33% {
+                    transform: translate(30px, -30px) rotate(120deg);
+                }
+                66% {
+                    transform: translate(-20px, 20px) rotate(240deg);
+                }
+            }
+
+            .main-container {
+                position: relative;
+                z-index: 1;
+                padding: 2rem 1rem;
+            }
+
+            /* Header Section */
+            .header-section {
+                text-align: center;
+                margin-bottom: 3rem;
+                animation: fadeInDown 0.8s ease;
+            }
+
+            .stedi-logo {
+                width: 100px;
+                height: 100px;
+                background: white;
+                border-radius: 25px;
+                padding: 15px;
+                box-shadow: var(--shadow-md);
+                margin-bottom: 1.5rem;
+                animation: scaleIn 0.6s ease;
+            }
+
+            .header-title {
+                font-size: 4rem;
+                font-weight: 900;
+                color: var(--primary);
+                text-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+                letter-spacing: 2px;
+                margin-bottom: 0.5rem;
+            }
+
+            .header-subtitle {
+                font-size: 1.3rem;
+                color: var(--primary);
+                text-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+                font-weight: 300;
+                letter-spacing: 1px;
+            }
+
+            /* Glass Card Base */
+            .glass-card {
+                background: var(--glass-bg);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border: 2px solid var(--glass-border);
+                border-radius: 30px;
+                box-shadow: var(--shadow-md);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .glass-card:hover {
+                transform: translateY(-8px);
+                box-shadow: var(--shadow-lg);
+                border-color: rgba(255, 255, 255, 0.4);
+            }
+
+            /* Dashboard Grid */
+            .dashboard-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 2rem;
+                margin-bottom: 3rem;
+                max-width: 1200px;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            /* Stats Cards */
+            .stats-card {
+                padding: 2.5rem 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stats-card::before {
+                content: '';
+                position: absolute;
+                top: -50%;
+                right: -50%;
+                width: 200%;
+                height: 200%;
+                background: radial-gradient(
+                    circle,
+                    rgba(255, 255, 255, 0.1) 0%,
+                    transparent 70%
+                );
+                transition: transform 0.6s ease;
+                transform: scale(0);
+            }
+
+            .stats-card:hover::before {
+                transform: scale(1);
+            }
+
+            .stats-icon {
+                position: absolute;
+                top: 2rem;
+                right: 2rem;
+                font-size: 3.5rem;
+                opacity: 0.15;
+                transition: all 0.4s ease;
+            }
+
+            .stats-card:hover .stats-icon {
+                opacity: 0.25;
+                transform: rotate(15deg) scale(1.1);
+            }
+
+            .stats-content {
+                position: relative;
+                z-index: 1;
+            }
+
+            .stats-number {
+                font-size: 4rem;
+                font-weight: 900;
+                line-height: 1;
+                margin-bottom: 0.8rem;
+                color: white;
+                text-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+            }
+
+            .stats-label {
+                font-size: 1rem;
+                font-weight: 600;
+                color: rgba(255, 255, 255, 0.95);
+                text-transform: uppercase;
+                letter-spacing: 1.5px;
+                margin-bottom: 1rem;
+            }
+
+            .stats-meta {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                font-size: 0.9rem;
+                color: rgba(255, 255, 255, 0.8);
+                margin-top: 1rem;
+            }
+
+            .pending-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(255, 107, 157, 75) 0%,
+                    rgba(254, 140, 180, 75) 100%
+                );
+            }
+
+            .pending-card .stats-icon {
+                color: #ffe5ec;
+            }
+
+            .completed-card {
+                background: linear-gradient(
+                    135deg,
+                    rgba(79, 172, 254, 75) 0%,
+                    rgba(0, 242, 254, 75) 100%
+                );
+            }
+
+            .completed-card .stats-icon {
+                color: #e0f7ff;
+            }
+
+            /* Action Section */
+            .action-section {
+                display: flex;
+                justify-content: center;
+                gap: 1.5rem;
+                flex-wrap: wrap;
+                max-width: 1200px;
+                margin: 0 auto;
+            }
+
+            .action-btn {
+                background: white;
+                border: none;
+                color: var(--primary);
+                padding: 1.2rem 2.5rem;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 1rem;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                cursor: pointer;
+                position: relative;
+                overflow: hidden;
+                box-shadow: var(--shadow-sm);
+                display: flex;
+                align-items: center;
+                gap: 0.8rem;
+                min-width: 200px;
+                justify-content: center;
+            }
+
+            .action-btn i {
+                font-size: 1.3rem;
+                transition: transform 0.3s ease;
+            }
+
+            .action-btn::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(
+                    135deg,
+                    var(--primary) 0%,
+                    var(--secondary) 100%
+                );
+                transition: left 0.4s ease;
+                z-index: 0;
+            }
+
+            .action-btn span {
+                position: relative;
+                z-index: 1;
+                transition: color 0.3s ease;
+            }
+
+            .action-btn:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+            }
+
+            .action-btn:hover::before {
+                left: 0;
+            }
+
+            .action-btn:hover span,
+            .action-btn:hover i {
+                color: white;
+            }
+
+            .action-btn:hover i {
+                transform: scale(1.1);
+            }
+
+            .action-btn:active {
+                transform: translateY(-2px);
+            }
+
+            /* Animations */
+            @keyframes fadeInDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            @keyframes scaleIn {
+                from {
+                    opacity: 0;
+                    transform: scale(0.8);
+                }
+                to {
+                    opacity: 1;
+                    transform: scale(1);
+                }
+            }
+
+            .pulse-animation {
+                animation: pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes pulse {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.8;
+                }
+            }
+
+            /* Responsive Design */
+            @media (max-width: 768px) {
+                .header-title {
+                    font-size: 3rem;
+                }
+
+                .header-subtitle {
+                    font-size: 1.1rem;
+                }
+
+                .stats-number {
+                    font-size: 3rem;
+                }
+
+                .stats-icon {
+                    font-size: 2.5rem;
+                }
+
+                .dashboard-grid {
+                    grid-template-columns: 1fr;
+                    gap: 1.5rem;
+                }
+
+                .action-section {
+                    flex-direction: column;
+                    padding: 0 1rem;
+                }
+
+                .action-btn {
+                    width: 100%;
+                }
+            }
+
+            @media (max-width: 480px) {
+                .header-title {
+                    font-size: 2.5rem;
+                }
+
+                .stats-card {
+                    padding: 2rem 1.5rem;
+                }
+
+                .stats-number {
+                    font-size: 2.5rem;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <!-- Floating Shapes Background -->
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+
+        <div class="main-container">
+            <div class="container">
+                <!-- Header Section -->
+                <div class="header-section text-center">
+                    <img
+                        src="/media/images/logo.png"
+                        alt="STEDI Logo"
+                        class="stedi-logo mb-3"
+                        width="120"
+                    />
+
+                    <h1 class="header-title gradient-text">STEDI</h1>
+                    <p class="header-subtitle">Analisis Suara Paru Pasien</p>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="dashboard-grid">
+                    <!-- Patients Pending Card -->
+                    <div class="glass-card stats-card pending-card">
+                        <div class="stats-icon">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stats-content">
+                            <div
+                                class="stats-number pulse-animation"
+                                id="pendingCount"
+                            >
+                                {{ pending_count }}
+                            </div>
+                            <div class="stats-label">
+                                Pasien Belum Diperiksa
+                            </div>
+                            <div class="stats-meta">
+                                <i class="bi bi-clock"></i>
+                                <span>Menunggu pemeriksaan</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Patients Completed Card -->
+                    <div class="glass-card stats-card completed-card">
+                        <div class="stats-icon">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </div>
+                        <div class="stats-content">
+                            <div class="stats-number" id="completedCount">
+                                {{ completed_count }}
+                            </div>
+                            <div class="stats-label">
+                                Pasien Sudah Diperiksa
+                            </div>
+                            <div class="stats-meta">
+                                <i class="bi bi-graph-up-arrow"></i>
+                                <span>Total pemeriksaan selesai</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-section">
+                    <button
+                        class="action-btn"
+                        data-url="{% url 'tambah_pasien' %}"
+                        onclick="redirectTo(this)"
+                    >
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Tambah Pasien</span>
+                    </button>
+                    <button
+                        class="action-btn"
+                        data-url="{% url 'upload_audio' %}"
+                        onclick="redirectTo(this)"
+                    >
+                        <i class="bi bi-heart-pulse-fill"></i>
+                        <span>Periksa Pasien</span>
+                    </button>
+                    <button
+                        class="action-btn"
+                        data-url="{% url 'daftar_pasien' %}"
+                        onclick="redirectTo(this)"
+                    >
+                        <i class="bi bi-list-ul"></i>
+                        <span>Daftar Pasien</span>
+                    </button>
+                </div>
+
+                <!-- Recent Activity Section -->
+                {% comment %}
+                <div class="recent-activity">
+                    <h4 class="mb-4 text-black">
+                        <i class="bi bi-activity me-2"></i>
+                        Aktivitas Terkini
+                    </h4>
+
+                    <div id="activityList">
+                        <div class="activity-item">
+                            <div class="activity-icon activity-pending">
+                                <i class="bi bi-person-plus"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-secondary fw-bold">
+                                    Pasien Baru Ditambahkan
+                                </div>
+                                <small class="text-secondary-50"
+                                    >John Doe - 2 menit yang lalu</small
+                                >
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon activity-completed">
+                                <i class="bi bi-check-circle"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-secondary fw-bold">
+                                    Pemeriksaan Selesai
+                                </div>
+                                <small class="text-secondary-50"
+                                    >Jane Smith - 15 menit yang lalu</small
+                                >
+                            </div>
+                        </div>
+
+                        <div class="activity-item">
+                            <div class="activity-icon activity-completed">
+                                <i class="bi bi-soundwave"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-secondary fw-bold">
+                                    Analisis Audio Selesai
+                                </div>
+                                <small class="text-secondary-50"
+                                    >Robert Johnson - 1 jam yang lalu</small
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endcomment %}
+            </div>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    </body>
+
+    <script>
+        // Redirect function for buttons
+        function redirectTo(button) {
+            const url = button.getAttribute('data-url');
+            window.location.href = url;
+        }
+
+        // Counter animation
+        function animateCounter(elementId, targetNumber) {
+            const element = document.getElementById(elementId);
+            const startNumber = 0;
+            const duration = 2000; // 2 seconds
+            const stepTime = Math.abs(Math.floor(duration / targetNumber));
+            const timer = setInterval(() => {
+                const current = parseInt(element.textContent);
+                if (current < targetNumber) {
+                    element.textContent = current + 1;
+                } else {
+                    clearInterval(timer);
+                }
+            }, stepTime);
+        }
+
+        // Initialize counters on page load
+        window.addEventListener('load', () => {
+            animateCounter(
+                'pendingCount',
+                parseInt(document.getElementById('pendingCount').innerText)
+            );
+            animateCounter(
+                'completedCount',
+                parseInt(document.getElementById('completedCount').innerText)
+            );
+        });
+
+        // Add Patient Function
+        function addPatient() {
+            // Simulate adding a patient
+            const currentPending = parseInt(
+                document.getElementById('pendingCount').textContent
+            );
+            document.getElementById('pendingCount').textContent =
+                currentPending + 1;
+
+            // Add activity
+            addActivity(
+                'Pasien Baru Ditambahkan',
+                'Pasien baru - Baru saja',
+                'pending',
+                'bi-person-plus'
+            );
+
+            // Show success feedback
+            showNotification('Pasien berhasil ditambahkan!', 'success');
+        }
+
+        // Examine Patient Function
+        function examinePatient() {
+            const currentPending = parseInt(
+                document.getElementById('pendingCount').textContent
+            );
+            const currentCompleted = parseInt(
+                document.getElementById('completedCount').textContent
+            );
+
+            if (currentPending > 0) {
+                document.getElementById('pendingCount').textContent =
+                    currentPending - 1;
+                document.getElementById('completedCount').textContent =
+                    currentCompleted + 1;
+
+                // Add activity
+                addActivity(
+                    'Pemeriksaan Selesai',
+                    'Pemeriksaan - Baru saja',
+                    'completed',
+                    'bi-check-circle'
+                );
+
+                // Show success feedback
+                showNotification('Pemeriksaan pasien selesai!', 'success');
+
+                // Redirect to audio analysis page (if needed)
+                // window.location.href = '/audio-analysis';
+            } else {
+                showNotification(
+                    'Tidak ada pasien yang menunggu pemeriksaan!',
+                    'warning'
+                );
+            }
+        }
+
+        // Add Activity to Recent Activity List
+        function addActivity(title, subtitle, type, icon) {
+            const activityList = document.getElementById('activityList');
+            const activityItem = document.createElement('div');
+            activityItem.className = 'activity-item';
+            activityItem.style.animation = 'slideInUp 0.5s ease-out';
+
+            activityItem.innerHTML = `
+                    <div class="activity-icon activity-${type}">
+                        <i class="bi ${icon}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="text-white fw-bold">${title}</div>
+                        <small class="text-white-50">${subtitle}</small>
+                    </div>
+                `;
+
+            // Insert at the beginning
+            activityList.insertBefore(activityItem, activityList.firstChild);
+
+            // Remove old activities if more than 5
+            if (activityList.children.length > 5) {
+                activityList.removeChild(activityList.lastChild);
+            }
+        }
+
+        // Show Notification
+        function showNotification(message, type) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.className = `alert alert-${
+                type === 'success' ? 'success' : 'warning'
+            } position-fixed`;
+            notification.style.cssText = `
+                    top: 20px;
+                    right: 20px;
+                    z-index: 9999;
+                    min-width: 300px;
+                    border-radius: 15px;
+                    backdrop-filter: blur(10px);
+                    animation: slideInRight 0.3s ease-out;
+                `;
+            notification.innerHTML = `
+                    <i class="bi bi-${
+                        type === 'success'
+                            ? 'check-circle'
+                            : 'exclamation-triangle'
+                    } me-2"></i>
+                    ${message}
+                `;
+
+            document.body.appendChild(notification);
+
+            // Remove notification after 3 seconds
+            setTimeout(() => {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Add CSS animations for notifications
+        const style = document.createElement('style');
+        style.textContent = `
+                @keyframes slideInRight {
+                    from {
+                        opacity: 0;
+                        transform: translateX(100px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                }
+                
+                @keyframes slideOutRight {
+                    from {
+                        opacity: 1;
+                        transform: translateX(0);
+                    }
+                    to {
+                        opacity: 0;
+                        transform: translateX(100px);
+                    }
+                }
+            `;
+        document.head.appendChild(style);
+
+        // Update time every minute for activity timestamps
+        setInterval(() => {
+            // This would normally update real timestamps from server
+            console.log('Updating timestamps...');
+        }, 60000);
+    </script>
+</html>
